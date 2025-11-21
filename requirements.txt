@@ -1,0 +1,10 @@
+pathway==0.27.0
+streamlit==1.33.0
+flask==3.0.2
+pandas==2.2.1
+gunicorn==21.2.0
+numpy==1.26.4
+requests==2.32.3
+yfinance==0.2.27
+fastapi==0.115.5
+uvicorn[standard]==0.32.0

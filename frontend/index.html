@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sentinel One | Financial Intelligence Hub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <!-- Top Navigation -->
+    <header class="nav-bar">
+      <div class="nav-left">
+        <div class="logo-mark">
+          <span class="logo-orb"></span>
+        </div>
+        <div class="logo-text">
+          <span class="logo-title">Sentinel One</span>
+          <span class="logo-subtitle">Financial Intelligence Hub</span>
+        </div>
+      </div>
+
+      <div class="nav-center">
+        <button class="nav-pill nav-pill--active">Market Monitor</button>
+        <button class="nav-pill" disabled>Fraud Analytics (coming)</button>
+        <button class="nav-pill" disabled>Assistant (coming)</button>
+      </div>
+
+      <div class="nav-right">
+        <div class="status-chip">
+          <span class="status-dot"></span>
+          <span id="live-status-text">Connecting…</span>
+        </div>
+        <div class="user-pill">
+          <span class="user-avatar">AD</span>
+          <span class="user-name">Analyst</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main layout -->
+    <main class="main-layout">
+      <!-- Left column: controls + watchlist -->
+      <section class="column column-left">
+        <!-- Controls -->
+        <div class="card card-controls">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Live Stream Controls</h2>
+              <p class="card-subtitle">Tune refresh interval & filter regions.</p>
+            </div>
+          </div>
+          <div class="controls-grid">
+            <div class="controls-block">
+              <label class="field-label" for="refresh-interval">
+                Refresh interval
+              </label>
+              <select id="refresh-interval" class="field-select">
+                <option value="10">Every 10 seconds</option>
+                <option value="30">Every 30 seconds</option>
+                <option value="60">Every 60 seconds</option>
+              </select>
+            </div>
+
+            <div class="controls-block">
+              <label class="field-label" for="region-filter">
+                Region
+              </label>
+              <select id="region-filter" class="field-select">
+                <option value="all">All regions</option>
+                <option value="India">India</option>
+                <option value="United States">United States</option>
+                <option value="Europe / UK">Europe / UK</option>
+                <option value="Asia ex-India">Asia ex-India</option>
+                <option value="Crypto / FX">Crypto / FX</option>
+                <option value="Others">Others</option>
+              </select>
+            </div>
+
+            <div class="controls-block controls-block--full">
+              <label class="field-label">Manual refresh</label>
+              <button id="manual-refresh" class="btn-primary">
+                ↻ Pull latest snapshot
+              </button>
+            </div>
+          </div>
+
+          <div class="controls-footer">
+            <span id="last-updated" class="meta-text">
+              Last updated — not yet
+            </span>
+          </div>
+        </div>
+
+        <!-- Watchlist -->
+        <div class="card card-watchlist">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Global Watchlist</h2>
+              <p class="card-subtitle">
+                Multi-asset universe across regions, currencies and crypto.
+              </p>
+            </div>
+          </div>
+
+          <div id="symbols-list" class="symbols-scroll">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Right column: details + AI insight -->
+      <section class="column column-right">
+        <!-- Instrument overview -->
+        <div class="card card-overview">
+          <div class="card-header card-header--split">
+            <div>
+              <h2 id="detail-symbol" class="instrument-symbol">Select an instrument</h2>
+              <p id="detail-name" class="instrument-name">
+                Click any row in the watchlist to view structured analytics.
+              </p>
+            </div>
+            <div class="instrument-tags">
+              <span id="detail-region" class="tag tag-region">Region —</span>
+              <span id="detail-date" class="tag tag-time">—</span>
+            </div>
+          </div>
+
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <span class="metric-label">Last close</span>
+              <span id="stat-close" class="metric-value">—</span>
+              <span class="metric-hint">Latest snapshot fetched from stream.</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Abs change</span>
+              <span id="stat-change-abs" class="metric-value">—</span>
+              <span class="metric-hint">Net move vs previous reference.</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">% change</span>
+              <span id="stat-change-pct" class="metric-value">—</span>
+              <span class="metric-hint">Direction & strength of momentum.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Insight -->
+        <div class="card card-ai">
+          <div class="card-header card-header--ai">
+            <div class="ai-header-left">
+              <span class="chip-ai">AI Insight</span>
+              <span class="ai-model-label">
+                Generated by LLM over real-time Pathway stream
+              </span>
+            </div>
+            <div class="ai-header-right">
+              <span class="ai-indicator">Narrative • Risk Lens • Volatility</span>
+            </div>
+          </div>
+
+          <div id="insight-content" class="ai-body">
+            <p class="ai-placeholder">
+              Select any symbol in the global watchlist to view
+              an English, human-readable explanation of what is
+              happening in that market.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
