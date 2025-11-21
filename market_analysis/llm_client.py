@@ -1,33 +1,12 @@
-import os
-import requests
-import json
+import google.generativeai as genai
 
-# ================================================================
-# ENV-BASED API KEY (YOU MUST SET IN TERMINAL or ~/.zshrc)
-# ================================================================
+# 1. API key yahi daal sakte ho (demo style)
+#    (Better practice: env var se lo, but abhi tumhara demo yehi hai)
+genai.configure(api_key="AIzaSyAtm15ZFknmgZwk0omTjNQk_GsC6M7144c")
 
-OPENROUTER_API_KEY = os.getenv("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", "")
+# 2. Model exactly wahi jo tum use kar rahe ho
+model = genai.GenerativeModel("gemini-flash-latest")
 
-OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
-
-# ==========================
-# MULTI-MODEL ROTATION LIST
-# ==========================
-
-FREE_MODELS = [
-    "x-ai/grok-4.1-fast:free",
-    "z-ai/glm-4.5-air:free",
-    "deepseek/deepseek-chat-v3-0324:free",
-    "deepseek/deepseek-r1-0528:free",
-    "qwen/qwen3-coder:free",
-    "nvidia/nemotron-nano-12b-v2-vl:free",
-    "google/gemma-3-27b-it:free",
-]
-
-
-# ================================================================
-# RULE-BASED FALLBACK
-# ================================================================
 
 def fallback_insight(symbol, change, close_price):
     direction = "up" if change > 0 else "down" if change < 0 else "flat"
@@ -37,17 +16,20 @@ def fallback_insight(symbol, change, close_price):
     )
 
 
-# ================================================================
-# MAIN FUNCTION (called from Pathway)
-# ================================================================
-
 def generate_market_insight(symbol, change, close_price):
+    """
+    Ye function Pathway se call hoga.
+    Bas prompt banata hai aur Gemini se analysis mangta hai.
+    """
+
     print("\n=====================================================")
-    print(f"[DEBUG] LLM call triggered for {symbol}")
+    print(f"[DEBUG] Gemini generate_market_insight for {symbol}")
     print("=====================================================\n")
 
-    if not OPENROUTER_API_KEY or not OPENROUTER_API_KEY.startswith("sk-or-"):
-        print("[ERROR] Missing or invalid OPENROUTER_API_KEY")
+    try:
+        change = float(change)
+        close_price = float(close_price)
+    except Exception:
         return fallback_insight(symbol, change, close_price)
 
     prompt = f"""
@@ -56,64 +38,27 @@ Write a short intraday analysis in clean, concise English.
 
 Instrument:
 - Symbol: {symbol}
-- Change: {change:+.2f}
-- Last Close: {close_price:.2f}
+- Absolute Change today: {change:+.2f}
+- Last Close Price: {close_price:.2f}
 
 Rules:
-- Trend should be based on magnitude and direction of move.
-- Mention risk (low/medium/high).
-- Explain if the move is normal intraday noise or meaningful.
+-Everthing Should be in detail analyse old rate of that stock previous record of the company profit loss statement and give a comprehesive info to user
+- Trend should be based on magnitude and direction of the move.
+- Explicitly state risk as: low / medium / high.
+- Explain if the move looks like normal intraday noise or something meaningful.
 - Write 5–7 bullet points.
-- Must be unique for this specific stock. No generic filler.
+- Make the analysis specific to this stock and this move, not generic filler text.
+- Do NOT give investment advice, just describe behaviour and risk.
 """
 
-    # Try each model one by one
-    for model in FREE_MODELS:
-        print(f"\n[DEBUG] Trying model: {model}")
+    try:
+        response = model.generate_content(prompt.strip())
+        if not response or not getattr(response, "text", None):
+            print("[ERROR] Gemini returned empty or invalid response.")
+            return fallback_insight(symbol, change, close_price)
 
-        body = {
-            "model": model,
-            "messages": [
-                {"role": "user", "content": prompt.strip()}
-            ],
-            "max_tokens": 220,
-            "temperature": 0.9,
-            "top_p": 0.9,
-        }
+        return response.text.strip()
 
-        headers = {
-            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-            "Content-Type": "application/json",
-            "HTTP-Referer": "http://localhost",
-            "X-Title": "GGSIPU-Financial-Monitoring",
-        }
-
-        try:
-            print("[DEBUG] Sending request to OpenRouter...")
-            resp = requests.post(OPENROUTER_URL, json=body, headers=headers, timeout=40)
-            print(f"[DEBUG] HTTP Status = {resp.status_code}")
-
-            if resp.status_code != 200:
-                print("[ERROR] Model failed:", model, resp.text[:180])
-                continue
-
-            data = resp.json()
-
-            if "error" in data:
-                print("[ERROR] API Model Error:", data["error"])
-                continue
-
-            content = data["choices"][0]["message"]["content"]
-            if not content:
-                print("[ERROR] Model returned empty content.")
-                continue
-
-            print(f"[DEBUG] SUCCESS with model: {model}")
-            return content.strip()
-
-        except Exception as e:
-            print(f"[EXCEPTION] Model crashed: {model} → {repr(e)}")
-            continue
-
-    print("[ERROR] ALL MODELS FAILED → fallback triggered.")
-    return fallback_insight(symbol, change, close_price)
+    except Exception as e:
+        print("[EXCEPTION] Gemini crashed:", repr(e))
+        return fallback_insight(symbol, change, close_price)
